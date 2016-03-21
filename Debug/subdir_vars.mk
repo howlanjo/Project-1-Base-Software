@@ -12,6 +12,7 @@ LIB_SRCS += \
 C_SRCS += \
 ../ClockSystem.c \
 ../ST7735.c \
+../dht22.c \
 ../main.c \
 ../msp430_spi.c \
 ../msp432_startup_ccs.c \
@@ -21,6 +22,7 @@ C_SRCS += \
 OBJS += \
 ./ClockSystem.obj \
 ./ST7735.obj \
+./dht22.obj \
 ./main.obj \
 ./msp430_spi.obj \
 ./msp432_startup_ccs.obj \
@@ -30,6 +32,7 @@ OBJS += \
 C_DEPS += \
 ./ClockSystem.pp \
 ./ST7735.pp \
+./dht22.pp \
 ./main.pp \
 ./msp430_spi.pp \
 ./msp432_startup_ccs.pp \
@@ -39,6 +42,7 @@ C_DEPS += \
 C_DEPS__QUOTED += \
 "ClockSystem.pp" \
 "ST7735.pp" \
+"dht22.pp" \
 "main.pp" \
 "msp430_spi.pp" \
 "msp432_startup_ccs.pp" \
@@ -48,6 +52,7 @@ C_DEPS__QUOTED += \
 OBJS__QUOTED += \
 "ClockSystem.obj" \
 "ST7735.obj" \
+"dht22.obj" \
 "main.obj" \
 "msp430_spi.obj" \
 "msp432_startup_ccs.obj" \
@@ -57,6 +62,7 @@ OBJS__QUOTED += \
 C_SRCS__QUOTED += \
 "../ClockSystem.c" \
 "../ST7735.c" \
+"../dht22.c" \
 "../main.c" \
 "../msp430_spi.c" \
 "../msp432_startup_ccs.c" \

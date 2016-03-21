@@ -3,15 +3,16 @@
 #include "ClockSystem.h"
 #include "support.h"
 
+uint16_t Light[6];
 //-----------------------------------------------------------------------
 void InitFunction(void)
 {
 	RTC_C_Calendar currentTime;
-	currentTime.dayOfmonth = 0x00;
+	currentTime.dayOfmonth = 0x20;
 	currentTime.hours = 0x18;
-	currentTime.minutes = 0x22;
-	currentTime.month = 0x01;
-	currentTime.seconds = 0x44;
+	currentTime.minutes = 0x00;
+	currentTime.month = 0x00;
+	currentTime.seconds = 0x00;
 	currentTime.year = 0x2016;
 
 	//	Halting the Watchdog
@@ -43,8 +44,9 @@ void InitFunction(void)
 	MAP_RTC_C_initCalendar(&currentTime, RTC_C_FORMAT_BCD);
 
 	/* Setup Calendar Alarm for 10:04pm (for the flux capacitor) */
-	MAP_RTC_C_setCalendarAlarm(0x04, 0x22, RTC_C_ALARMCONDITION_OFF,
-			RTC_C_ALARMCONDITION_OFF);
+//	MAP_RTC_C_setCalendarAlarm(0x04, 0x22, RTC_C_ALARMCONDITION_OFF, RTC_C_ALARMCONDITION_OFF);
+
+//	newTime = MAP_RTC_C_getCalendarTime();
 
 	/* Specify an interrupt to assert every minute */
 	MAP_RTC_C_setCalendarEvent(RTC_C_CALENDAREVENT_MINUTECHANGE);
@@ -65,13 +67,6 @@ void InitFunction(void)
 	/* Enable interrupts and go to sleep. */
 	MAP_Interrupt_enableInterrupt(INT_RTC_C);
 	MAP_Interrupt_enableSleepOnIsrExit();
-
-	//	Enabling MASTER interrupts
-//	MAP_Interrupt_enableMaster();
-
-//	ST7735_SetRotation(3);
-//	ST7735_FillScreen(0x0000);
-
 }
 //-----------------------------------------------------------------------
 // Make P2.2 an output, enable digital I/O, ensure alt. functions off
@@ -122,22 +117,11 @@ int EncoderDecipher(uint8_t encoder1[], uint8_t encoder2[], uint8_t pushbutton[]
 	int sum[3];
 	static int y = 0, movement = NONE, test = 1;
 
-/*	//Combining signal A and B to a single integer
-	sum[0] = binaryToDecimal(encoder1[0], encoder2[0]);
-	sum[1] = binaryToDecimal(encoder1[1], encoder2[1]);
-
-	//Creating 4 bit sum value
-	sum[2] = ((sum[0] & 0x03) << 2);
-	sum[2] = (sum[2] + sum[1]);*/
-
 	if((!encoder1[0] && !encoder2[0] && encoder1[1] && encoder2[1])
 	 ||(!encoder1[0] && encoder2[0] && encoder1[1] && encoder2[1])
 	 ||(encoder1[0] && encoder2[0] && encoder1[1] && !encoder2[1])
 	 ||(encoder1[0] && !encoder2[0] && !encoder1[1] && !encoder2[1]))
 	{
-		//Counter-Clockwise
-//		encoder1[1] = encoder1[0];
-//		encoder2[1] = encoder2[0];
 		movement = LEFT;
 	}
 	else if((!encoder1[0] && !encoder2[0] && encoder1[1] && !encoder2[1])
@@ -145,9 +129,6 @@ int EncoderDecipher(uint8_t encoder1[], uint8_t encoder2[], uint8_t pushbutton[]
 			 ||(encoder1[0] && encoder2[0] && !encoder1[1] && encoder2[1])
 			 ||(!encoder1[0] && encoder2[0] && !encoder1[1] && !encoder2[1]))
 	{
-		//Clockwise
-//		encoder1[1] = encoder1[0];
-//		encoder2[1] = encoder2[0];
 		movement = RIGHT;
 	}
 	else
@@ -170,7 +151,7 @@ int EncoderDecipher(uint8_t encoder1[], uint8_t encoder2[], uint8_t pushbutton[]
 			y++;
 		else
 			y = 0;
-		if(y == 10000 && test)
+		if(y == 15000 && test)
 		{
 			movement = HOLD;
 			test = 0;
@@ -180,29 +161,52 @@ int EncoderDecipher(uint8_t encoder1[], uint8_t encoder2[], uint8_t pushbutton[]
 
 	return movement;
 }
-/*
-int StringOut( char filePath, char *string)
+//-----------------------------------------------------------------------
+void calculateLighting(uint16_t value, char stringOUT[30], int8_t *index)
 {
-	int ret = 0;	//Set ret to 0 meaning no errors
-	FILE *ptr;
+	memset(stringOUT, 0, sizeof(stringOUT));
 
-	err = f_open(ptr, filePath, "a");	//open in 'append' mode. This way the file isn't deleted, just simply added onto
-	if(!err)
+	Light[0] = 100.0;
+	Light[1] = 800.0;
+	Light[2] = 10000.0;
+	Light[3] = 16000.0;
+	Light[4] = 24000.0;
+	Light[5] = 36000.0;
+
+	if(value < Light[0])
 	{
-		err |= f_write(ptr, string, sizeof(string), &outSize);		//write string
-		err |= f_close(ptr);		//close file
-
-		if(outSize != sizeof(string))
-		{
-			ret = -1;	//error occured. This value will be returned out of function
-		}
+		sprintf(stringOUT, "Very Dark");
+		*index = 0;
+	}
+	else if (value > Light[0] && value < Light[1])
+	{
+		sprintf(stringOUT, "Full Moon");
+		*index = 1;
+	}
+	else if (value > Light[1] && value < Light[2])
+	{
+		sprintf(stringOUT, "Dusk");
+		*index = 2;
+	}
+	else if (value > Light[2] && value < Light[3])
+	{
+		sprintf(stringOUT, "Overcast");
+		*index = 3;
+	}
+	else if (value > Light[3] && value < Light[4])
+	{
+		sprintf(stringOUT, "Lil' Sun");
+		*index = 4;
+	}
+	else if (value > Light[4] && value < Light[5])
+	{
+		sprintf(stringOUT, "SUNNY");
+		*index = 5;
 	}
 	else
 	{
-		ret = -2; 	//error occured. This value will be returned out of function
+		sprintf(stringOUT, "ERROR");
+		*index = 6;
 	}
-	return ret;
 }
-*/
-
 

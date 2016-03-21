@@ -1,93 +1,3 @@
-/***************************************************
-  This is a library for the Adafruit 1.8" SPI display.
-  This library works with the Adafruit 1.8" TFT Breakout w/SD card
-  ----> http://www.adafruit.com/products/358
-  as well as Adafruit raw 1.8" TFT displayun
-  ----> http://www.adafruit.com/products/618
-
-  Check out the links above for our tutorials and wiring diagrams
-  These displays use SPI to communicate, 4 or 5 pins are required to
-  interface (RST is optional)
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
-
-  Written by Limor Fried/Ladyada for Adafruit Industries.
-  MIT license, all text above must be included in any redistribution
- ****************************************************/
-
-// ST7735.c
-// Runs on MSP432
-// Low level drivers for the ST7735 160x128 LCD based off of
-// the file described above.
-//    16-bit color, 128 wide by 160 high LCD
-// Daniel Valvano
-// October 12, 2015
-// Augmented 7/17/2014 to have a simple graphics facility
-// Tested with LaunchPadDLL.dll simulator 9/2/2014
-
-/* This example accompanies the book
-   "Embedded Systems: Introduction to the MSP432 Microcontroller",
-   ISBN: 978-1512185676, Jonathan Valvano, copyright (c) 2015
-
- Copyright 2015 by Jonathan W. Valvano, valvano@mail.utexas.edu
-    You may use, edit, run or distribute this file
-    as long as the above copyright notice remains
- THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
- OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
- MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
- VALVANO SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL,
- OR CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
- For more information about my classes, my research, and my books, see
- http://users.ece.utexas.edu/~valvano/
- */
-
-// hardware connections
-// **********ST7735 TFT and SDC*******************
-// ST7735
-// Backlight (pin 10) connected to +3.3 V
-// MISO (pin 9) unconnected
-// SCK (pin 8) connected to P9.5 (UCA3CLK)
-// MOSI (pin 7) connected to P9.7 (UCA3SIMO)
-// TFT_CS (pin 6) connected to P9.4 (UCA3STE)
-// CARD_CS (pin 5) unconnected
-// Data/Command (pin 4) connected to P9.2 (GPIO), high for data, low for command
-// RESET (pin 3) connected to P9.3 (GPIO)
-// VCC (pin 2) connected to +3.3 V
-// Gnd (pin 1) connected to ground
-
-// **********wide.hk ST7735R with ADXL345 accelerometer *******************
-// Silkscreen Label (SDC side up; LCD side down) - Connection
-// VCC  - +3.3 V
-// GND  - Ground
-// !SCL - P9.5 UCA3CLK SPI clock from microcontroller to TFT or SDC
-// !SDA - P9.7 UCA3SIMO SPI data from microcontroller to TFT or SDC
-// DC   - P9.2 TFT data/command
-// RES  - P9.3 TFT reset
-// CS   - P9.4 UCA3STE TFT_CS, active low to enable TFT
-// *CS  - (NC) SDC_CS, active low to enable SDC
-// MISO - (NC) MISO SPI data from SDC to microcontroller
-// SDA  – (NC) I2C data for ADXL345 accelerometer
-// SCL  – (NC) I2C clock for ADXL345 accelerometer
-// SDO  – (NC) I2C alternate address for ADXL345 accelerometer
-// Backlight + - Light, backlight connected to +3.3 V
-
-// **********wide.hk ST7735R with ADXL335 accelerometer *******************
-// Silkscreen Label (SDC side up; LCD side down) - Connection
-// VCC  - +3.3 V
-// GND  - Ground
-// !SCL - P9.5 UCA3CLK SPI clock from microcontroller to TFT or SDC
-// !SDA - P9.7 UCA3SIMO SPI data from microcontroller to TFT or SDC
-// DC   - P9.2 TFT data/command
-// RES  - P9.3 TFT reset
-// CS   - P9.4 UCA3STE TFT_CS, active low to enable TFT
-// *CS  - (NC) SDC_CS, active low to enable SDC
-// MISO - (NC) MISO SPI data from SDC to microcontroller
-// X– (NC) analog input X-axis from ADXL335 accelerometer
-// Y– (NC) analog input Y-axis from ADXL335 accelerometer
-// Z– (NC) analog input Z-axis from ADXL335 accelerometer
-// Backlight + - Light, backlight connected to +3.3 V
-
 #include <stdio.h>
 #include <stdint.h>
 #include "ST7735.h"
@@ -852,56 +762,6 @@ void ST7735_DrawPixel(int16_t x, int16_t y, uint16_t color) {
 
   pushColor(color);
 }
-
-
-//------------ST7735_DrawFastVLine------------
-// Draw a vertical line at the given coordinates with the given height and color.
-// A vertical line is parallel to the longer side of the rectangular display
-// Requires (11 + 2*h) bytes of transmission (assuming image fully on screen)
-// Input: x     horizontal position of the start of the line, columns from the left edge
-//        y     vertical position of the start of the line, rows from the top edge
-//        h     vertical height of the line
-//        color 16-bit color, which can be produced by ST7735_Color565()
-// Output: none
-void ST7735_DrawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color) {
-  uint8_t hi = color >> 8, lo = color;
-
-  // Rudimentary clipping
-  if((x >= _width) || (y >= _height)) return;
-  if((y+h-1) >= _height) h = _height-y;
-  setAddrWindow(x, y, x, y+h-1);
-
-  while (h--) {
-    writedata(hi);
-    writedata(lo);
-  }
-}
-
-
-//------------ST7735_DrawFastHLine------------
-// Draw a horizontal line at the given coordinates with the given width and color.
-// A horizontal line is parallel to the shorter side of the rectangular display
-// Requires (11 + 2*w) bytes of transmission (assuming image fully on screen)
-// Input: x     horizontal position of the start of the line, columns from the left edge
-//        y     vertical position of the start of the line, rows from the top edge
-//        w     horizontal width of the line
-//        color 16-bit color, which can be produced by ST7735_Color565()
-// Output: none
-void ST7735_DrawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
-  uint8_t hi = color >> 8, lo = color;
-
-  // Rudimentary clipping
-  if((x >= _width) || (y >= _height)) return;
-  if((x+w-1) >= _width)  w = _width-x;
-  setAddrWindow(x, y, x+w-1, y);
-
-  while (w--) {
-    writedata(hi);
-    writedata(lo);
-  }
-}
-
-
 //------------ST7735_FillScreen------------
 // Fill the screen with the given color.
 // Requires 40,971 bytes of transmission
@@ -1029,90 +889,6 @@ void ST7735_DrawBitmap(int16_t x, int16_t y, const uint16_t *image, int16_t w, i
     i = i - 2*originalWidth;
   }
 }
-
-// *************** ST7735_SetPrintOptions ********************
-// Sets up screen printing parameters so that
-// user does not have to keep setting these parameters.
-// Inputs: 	X -- x position on screen
-//			Y -- y position on screen
-//			CharColor -- character color
-//			BgColor -- Background color
-//			Size -- Size of font
-// Outputs: err -- Indication on whether an error was propagated
-int ST7735_SetPrintOptions(int16_t xPos, int16_t yPos, int16_t colorChar, int16_t colorBackground, int8_t size)
-{
-	int16_t testingColor = 0;
-	int i = 0, err = 0;
-
-	//Make sure valid size was passed in
-	if(size < 1 || size > 10)
-		err = -1;
-	else
-	{
-		//Sets X location to zero if off screen
-		if((xPos >= _width) || ((xPos + 5 * size - 1) < 0))
-			StX = 0;
-		else
-			StX = xPos;
-
-		//Sets Y location back to zero if off screen
-		if((yPos >= _height) || ((yPos + 8 * size - 1) < 0))
-			StY = 0;
-		else
-			StY = yPos;
-
-		//Loops through both the text and background and set global variables
-		for(i = 0; i < 2; i ++)
-		{
-			if(i == 0)	// Zero is the text color
-				testingColor = colorChar;
-			else		// One is the background color
-				testingColor = colorBackground;
-
-			switch(testingColor)
-			{
-				case ST7735_BLACK:
-					testingColor = ST7735_BLACK;
-				break;
-				case ST7735_BLUE:
-					testingColor = ST7735_BLUE;
-				break;
-				case ST7735_RED:
-					testingColor = ST7735_RED;
-				break;
-				case ST7735_GREEN:
-					testingColor = ST7735_GREEN;
-				break;
-				case ST7735_CYAN:
-					testingColor = ST7735_CYAN;
-				break;
-				case ST7735_MAGENTA:
-					testingColor = ST7735_MAGENTA;
-				break;
-				case ST7735_YELLOW:
-					testingColor = ST7735_YELLOW;
-				break;
-				case ST7735_WHITE:
-					testingColor = ST7735_WHITE;
-				break;
-				default:
-					if(i == 0) 	//Text color default to black
-						testingColor = ST7735_BLACK;
-					else		//Background color default to White
-						testingColor = ST7735_WHITE;
-				break;
-			}
-
-			if(i == 0)
-				TextColor = testingColor;
-			else
-				BgColor = testingColor;
-		}
-	}
-
-	return err;
-}
-
 //------------ST7735_DrawCharS------------
 // Simple character draw function.  This is the same function from
 // Adafruit_GFX.c but adapted for this processor.  However, each call
@@ -1238,24 +1014,46 @@ uint32_t ST7735_DrawString(uint16_t x, uint16_t y, char *pt, int16_t textColor){
   return count;  // number of characters printed
 }
 
-
-//-----------------------fillmessage-----------------------
-// Output a 32-bit number in unsigned decimal format
-// Input: 32-bit number to be transferred
-// Output: none
-// Variable format 1-10 digits with no space before or after
-char Message[12];
-uint32_t Messageindex;
-
-void fillmessage(uint32_t n){
-// This function uses recursion to convert decimal number
-//   of unspecified length as an ASCII string
-  if(n >= 10){
-    fillmessage(n/10);
-    n = n%10;
+//------------ST7735_DrawStringNew------------
+// String draw function.
+// 16 rows (0 to 15) and 21 characters (0 to 20)
+// Requires (11 + size*size*6*8) bytes of transmission for each character
+// Input: x         columns from the left edge (0 to 20)
+//        y         rows from the top edge (0 to 15)
+//        pt        pointer to a null terminated string to be printed
+//        textColor 16-bit color of the characters
+// bgColor is Black and size is 1
+// Output: number of characters printed
+uint32_t ST7735_DrawStringHorizontal(uint16_t x, uint16_t y, char *pt, int16_t textColor, uint8_t size)
+{
+  uint32_t count = 0, i = 0;
+//  if(y>15) return 0;
+  while(*pt)
+  {
+    ST7735_DrawCharS(x+(size*5*i), y, *pt, textColor, textColor, size);
+    pt++;
+    i++;
+    x = x+1;
+//    if(x>20) return count;  // number of characters printed
+    count++;
   }
-  Message[Messageindex] = (n+'0'); /* n is between 0 and 9 */
-  if(Messageindex<11)Messageindex++;
+  return count;  // number of characters printed
+}
+
+uint32_t ST7735_DrawStringVertical(uint16_t x, uint16_t y, char *pt, int16_t textColor, uint8_t size)
+{
+  uint32_t count = 0, i = 0;
+//  if(y>15) return 0;
+  while(*pt)
+  {
+    ST7735_DrawCharS(x, y+(size*8*i), *pt, textColor, textColor, size);
+    pt++;
+    i++;
+//    x = x+1;
+//    if(x>20) return count;  // number of characters printed
+    count++;
+  }
+  return count;  // number of characters printed
 }
 
 
@@ -1273,30 +1071,6 @@ void ST7735_SetCursor(uint32_t newX, uint32_t newY){
   StX = newX;
   StY = newY;
 }
-
-
-//-----------------------ST7735_OutUDec-----------------------
-// Output a 32-bit number in unsigned decimal format
-// Position determined by ST7735_SetCursor command
-// Color set by ST7735_SetTextColor
-// Input: 32-bit number to be transferred
-// Output: none
-// Variable format 1-10 digits with no space before or after
-void ST7735_OutUDec(uint32_t n){
-  Messageindex = 0;
-  fillmessage(n);
-  Message[Messageindex] = 0; // terminate
-  ST7735_DrawString(StX,StY,Message,StTextColor);
-  StX = StX+Messageindex;
-  if(StX>20){
-    StX = 20;
-    ST7735_DrawCharS(StX*6,StY*10,'*',ST7735_RED,ST7735_BLACK, 1);
-  }
-}
-
-
-
-
 
 #define MADCTL_MY  0x80
 #define MADCTL_MX  0x40
@@ -1376,124 +1150,6 @@ void ST7735_InvertDisplay(int i) {
 int32_t Ymax,Ymin,X;        // X goes from 0 to 127
 int32_t Yrange; //YrangeDiv2;
 
-// *************** ST7735_PlotClear ********************
-// Clear the graphics buffer, set X coordinate to 0
-// This routine clears the display
-// Inputs: ymin and ymax are range of the plot
-// Outputs: none
-void ST7735_PlotClear(int32_t ymin, int32_t ymax){
-  ST7735_FillRect(0, 32, 128, 128, ST7735_Color565(228,228,228)); // light grey
-  if(ymax>ymin){
-    Ymax = ymax;
-    Ymin = ymin;
-    Yrange = ymax-ymin;
-  } else{
-    Ymax = ymin;
-    Ymin = ymax;
-    Yrange = ymax-ymin;
-  }
-  //YrangeDiv2 = Yrange/2;
-  X = 0;
-}
-
-// *************** ST7735_PlotPoint ********************
-// Used in the voltage versus time plot, plot one point at y
-// It does output to display
-// Inputs: y is the y coordinate of the point plotted
-// Outputs: none
-void ST7735_PlotPoint(int32_t y){int32_t j;
-  if(y<Ymin) y=Ymin;
-  if(y>Ymax) y=Ymax;
-  // X goes from 0 to 127
-  // j goes from 159 to 32
-  // y=Ymax maps to j=32
-  // y=Ymin maps to j=159
-  j = 32+(127*(Ymax-y))/Yrange;
-  if(j<32) j = 32;
-  if(j>159) j = 159;
-  ST7735_DrawPixel(X,   j,   ST7735_BLUE);
-  ST7735_DrawPixel(X+1, j,   ST7735_BLUE);
-  ST7735_DrawPixel(X,   j+1, ST7735_BLUE);
-  ST7735_DrawPixel(X+1, j+1, ST7735_BLUE);
-}
-
-// *************** ST7735_PlotLine ********************
-// Used in the voltage versus time plot, plot line to new point
-// It does output to display
-// Inputs: y is the y coordinate of the point plotted
-// Outputs: none
-int32_t lastj=0;
-void ST7735_PlotLine(int32_t y){int32_t i,j;
-  if(y<Ymin) y=Ymin;
-  if(y>Ymax) y=Ymax;
-  // X goes from 0 to 127
-  // j goes from 159 to 32
-  // y=Ymax maps to j=32
-  // y=Ymin maps to j=159
-  j = 32+(127*(Ymax-y))/Yrange;
-  if(j < 32) j = 32;
-  if(j > 159) j = 159;
-  if(lastj < 32) lastj = j;
-  if(lastj > 159) lastj = j;
-  if(lastj < j){
-    for(i = lastj+1; i<=j ; i++){
-      ST7735_DrawPixel(X,   i,   ST7735_BLUE) ;
-      ST7735_DrawPixel(X+1, i,   ST7735_BLUE) ;
-    }
-  }else if(lastj > j){
-    for(i = j; i<lastj ; i++){
-      ST7735_DrawPixel(X,   i,   ST7735_BLUE) ;
-      ST7735_DrawPixel(X+1, i,   ST7735_BLUE) ;
-    }
-  }else{
-    ST7735_DrawPixel(X,   j,   ST7735_BLUE) ;
-    ST7735_DrawPixel(X+1, j,   ST7735_BLUE) ;
-  }
-  lastj = j;
-}
-
-// *************** ST7735_PlotPoints ********************
-// Used in the voltage versus time plot, plot two points at y1, y2
-// It does output to display
-// Inputs: y1 is the y coordinate of the first point plotted
-//         y2 is the y coordinate of the second point plotted
-// Outputs: none
-void ST7735_PlotPoints(int32_t y1,int32_t y2){int32_t j;
-  if(y1<Ymin) y1=Ymin;
-  if(y1>Ymax) y1=Ymax;
-  // X goes from 0 to 127
-  // j goes from 159 to 32
-  // y=Ymax maps to j=32
-  // y=Ymin maps to j=159
-  j = 32+(127*(Ymax-y1))/Yrange;
-  if(j<32) j = 32;
-  if(j>159) j = 159;
-  ST7735_DrawPixel(X, j, ST7735_BLUE);
-  if(y2<Ymin) y2=Ymin;
-  if(y2>Ymax) y2=Ymax;
-  j = 32+(127*(Ymax-y2))/Yrange;
-  if(j<32) j = 32;
-  if(j>159) j = 159;
-  ST7735_DrawPixel(X, j, ST7735_BLACK);
-}
-
-// *************** ST7735_PlotBar ********************
-// Used in the voltage versus time bar, plot one bar at y
-// It does not output to display until RIT128x96x4ShowPlot called
-// Inputs: y is the y coordinate of the bar plotted
-// Outputs: none
-void ST7735_PlotBar(int32_t y){
-int32_t j;
-  if(y<Ymin) y=Ymin;
-  if(y>Ymax) y=Ymax;
-  // X goes from 0 to 127
-  // j goes from 159 to 32
-  // y=Ymax maps to j=32
-  // y=Ymin maps to j=159
-  j = 32+(127*(Ymax-y))/Yrange;
-  ST7735_DrawFastVLine(X, j, 159-j, ST7735_BLACK);
-
-}
 
 // full scaled defined as 3V
 // Input is 0 to 511, 0 => 159 and 511 => 32
@@ -1523,98 +1179,6 @@ uint8_t const dBfs[512]={
   33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 32, 32, 32,
   32, 32, 32, 32, 32, 32, 32, 32, 32, 32
 };
-
-// *************** ST7735_PlotdBfs ********************
-// Used in the amplitude versus frequency plot, plot bar point at y
-// 0 to 0.625V scaled on a log plot from min to max
-// It does output to display
-// Inputs: y is the y ADC value of the bar plotted
-// Outputs: none
-void ST7735_PlotdBfs(int32_t y){
-int32_t j;
-  y = y/2; // 0 to 2047
-  if(y<0) y=0;
-  if(y>511) y=511;
-  // X goes from 0 to 127
-  // j goes from 159 to 32
-  // y=511 maps to j=32
-  // y=0 maps to j=159
-  j = dBfs[y];
-  ST7735_DrawFastVLine(X, j, 159-j, ST7735_BLACK);
-
-}
-
-// *************** ST7735_PlotNext ********************
-// Used in all the plots to step the X coordinate one pixel
-// X steps from 0 to 127, then back to 0 again
-// It does not output to display
-// Inputs: none
-// Outputs: none
-void ST7735_PlotNext(void){
-  if(X==127){
-    X = 0;
-  } else{
-    X++;
-  }
-}
-
-// *************** ST7735_PlotNextErase ********************
-// Used in all the plots to step the X coordinate one pixel
-// X steps from 0 to 127, then back to 0 again
-// It clears the vertical space into which the next pixel will be drawn
-// Inputs: none
-// Outputs: none
-void ST7735_PlotNextErase(void){
-  if(X==127){
-    X = 0;
-  } else{
-    X++;
-  }
-  ST7735_DrawFastVLine(X,32,128,ST7735_Color565(228,228,228));
-}
-
-// Used in all the plots to write buffer to LCD
-// Example 1 Voltage versus time
-//    ST7735_PlotClear(0,4095);  // range from 0 to 4095
-//    ST7735_PlotPoint(data); ST7735_PlotNext(); // called 128 times
-
-// Example 2a Voltage versus time (N data points/pixel, time scale)
-//    ST7735_PlotClear(0,4095);  // range from 0 to 4095
-//    {   for(j=0;j<N;j++){
-//          ST7735_PlotPoint(data[i++]); // called N times
-//        }
-//        ST7735_PlotNext();
-//    }   // called 128 times
-
-// Example 2b Voltage versus time (N data points/pixel, time scale)
-//    ST7735_PlotClear(0,4095);  // range from 0 to 4095
-//    {   for(j=0;j<N;j++){
-//          ST7735_PlotLine(data[i++]); // called N times
-//        }
-//        ST7735_PlotNext();
-//    }   // called 128 times
-
-// Example 3 Voltage versus frequency (512 points)
-//    perform FFT to get 512 magnitudes, mag[i] (0 to 4095)
-//    ST7735_PlotClear(0,1023);  // clip large magnitudes
-//    {
-//        ST7735_PlotBar(mag[i++]); // called 4 times
-//        ST7735_PlotBar(mag[i++]);
-//        ST7735_PlotBar(mag[i++]);
-//        ST7735_PlotBar(mag[i++]);
-//        ST7735_PlotNext();
-//    }   // called 128 times
-
-// Example 4 Voltage versus frequency (512 points), dB scale
-//    perform FFT to get 512 magnitudes, mag[i] (0 to 4095)
-//    ST7735_PlotClear(0,511);  // parameters ignored
-//    {
-//        ST7735_PlotdBfs(mag[i++]); // called 4 times
-//        ST7735_PlotdBfs(mag[i++]);
-//        ST7735_PlotdBfs(mag[i++]);
-//        ST7735_PlotdBfs(mag[i++]);
-//        ST7735_PlotNext();
-//    }   // called 128 times
 
 // *************** ST7735_OutChar ********************
 // Output one character to the LCD
@@ -1717,40 +1281,4 @@ void Output_Color(uint32_t newColor){ // Set color of future output
   ST7735_SetTextColor(newColor);
 }
 
-void ST7735_Counter(int location, int size)
-{
-	int x, y, counter;
-	char c;
-
-	switch (location)
-	{
-		case TOP_RIGHT:
-			x = 124-(6*size);
-			y = 0;
-		break;
-		case TOP_LEFT:
-			x = 0;
-			y = 0;
-		break;
-		case BOTTOM_RIGHT:
-			x = 124-(6*size);
-			y = 155-(10*size);
-		break;
-		case BOTTOM_LEFT:
-			x = 0;
-			y = 155-(10*size);
-		break;
-		case CENTER:
-			x = 50;
-			y = 80-((10*size))/2;
-		break;
-	}
-	c = '0';
-	for(counter = 0; counter < 10; counter++)
-	{
-		ST7735_DrawCharS(x, y, (c+counter), 0, 0xFFFF, size);
-		DelayWait10ms(50);
-	}
-
-}
 

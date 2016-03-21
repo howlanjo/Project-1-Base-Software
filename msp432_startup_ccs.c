@@ -58,6 +58,7 @@ extern unsigned long __STACK_END;
 extern void systick_isr(void);
 extern void rtc_isr(void);
 extern void gpio_isr(void);
+extern void timer0_a0_isr(void);
 
 /* Interrupt vector table.  Note that the proper constructs must be placed on this to  */
 /* ensure that it ends up at physical address 0x0000.0000 or at the start of          */
@@ -86,12 +87,12 @@ void (* const interruptVectors[])(void) =
     defaultISR,                             /* PSS ISR                   */
     defaultISR,                             /* CS ISR                    */
     defaultISR,                             /* PCM ISR                   */
-    defaultISR,                             /* WDT ISR                   */
+	defaultISR,                             /* WDT ISR                   */
     defaultISR,                             /* FPU ISR                   */
     defaultISR,                             /* FLCTL ISR                 */
     defaultISR,                             /* COMP0 ISR                 */
     defaultISR,                             /* COMP1 ISR                 */
-    defaultISR,                             /* TA0_0 ISR                 */
+	timer0_a0_isr,                             /* TA0_0 ISR                 */
     defaultISR,                             /* TA0_N ISR                 */
     defaultISR,                             /* TA1_0 ISR                 */
     defaultISR,                             /* TA1_N ISR                 */

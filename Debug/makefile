@@ -12,6 +12,7 @@ GEN_CMDS__FLAG :=
 ORDERED_OBJS += \
 "./ClockSystem.obj" \
 "./ST7735.obj" \
+"./dht22.obj" \
 "./main.obj" \
 "./msp430_spi.obj" \
 "./msp432_startup_ccs.obj" \
@@ -156,8 +157,8 @@ Project\ 1\ Base\ Software.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)$(BIN_OUTPUTS__QUOTED)
-	-$(RM) "ClockSystem.pp" "ST7735.pp" "main.pp" "msp430_spi.pp" "msp432_startup_ccs.pp" "msprf24.pp" "support.pp" 
-	-$(RM) "ClockSystem.obj" "ST7735.obj" "main.obj" "msp430_spi.obj" "msp432_startup_ccs.obj" "msprf24.obj" "support.obj" 
+	-$(RM) "ClockSystem.pp" "ST7735.pp" "dht22.pp" "main.pp" "msp430_spi.pp" "msp432_startup_ccs.pp" "msprf24.pp" "support.pp" 
+	-$(RM) "ClockSystem.obj" "ST7735.obj" "dht22.obj" "main.obj" "msp430_spi.obj" "msp432_startup_ccs.obj" "msprf24.obj" "support.obj" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

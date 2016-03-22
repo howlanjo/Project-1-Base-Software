@@ -27,9 +27,9 @@ int16_t lightingStringColor[20];
 static int16_t temperatureOUT[2], temperatureIN[2], lux[2], humidityOUT[2], humidityIN[2], lux[2];
 static uint16_t pressure[2];
 char dateString[20], timeString[20], lightIndexString[2][20];
-char months[12][5], temp[50], tempString[50];
+char months[12][5], temp[50], tempString[50], tempCharacter;
 static volatile RTC_C_Calendar newTime, setTime;
-int err = NONE, lightIndex[2];
+int err = NONE, lightIndex[2], tempFormat;
 char addr[5];
 char buf[32];
 uint8_t data[32];
@@ -52,9 +52,12 @@ const Timer_A_UpModeConfig upConfig =
 //
 int main (void)
 {
-	int encoderValue = 0, count = 0, temp0, temp1, temp2, temp3;
+	int encoderValue = 0, count = 0;
+	int16_t temp0, temp1, temp2, temp3;
 	int refreshValues = YES, i, t = 0, h = 0;
 	screen = 2;
+	tempFormat = CEL;
+	tempCharacter = 'C';
 
 	MAP_WDT_A_holdTimer();
 
@@ -112,7 +115,7 @@ int main (void)
 //	        	printf("%s\n", data);
 	        	count = sscanf(data, "<T%dP%dH%dL%d>", &temp0, &temp1, &temp2, &temp3);
 	        	temperatureOUT[0] = temp0;
-	        	pressure[0] = (unsigned)temp1;
+	        	pressure[0] = temp1;
 	        	humidityOUT[0] = temp2;
 	        	lux[0] = temp3;
 	        	calculateLighting(lux[0], lightIndexString[0], &lightIndex[0]);
@@ -134,6 +137,12 @@ int main (void)
 
 				humidityIN[0] = h;
 				temperatureIN[0] = t;
+
+				if(tempFormat == FAR)
+				{
+					temperatureIN[0] = (temperatureIN[0] * 1.8) + 32;
+					temperatureOUT[0] = (temperatureOUT[0] * 1.8) + 32;
+				}
 
 				tick = 0;
 				if(screen == 1)
@@ -158,11 +167,11 @@ int main (void)
 					{
 						sprintf(tempString, "%02d.%.1d", temperatureOUT[1]/10, temperatureOUT[1]%10);
 						ST7735_DrawStringHorizontal(20, 80, tempString, ST7735_Color565(0, 0, 0), 4);
-						ST7735_DrawCharS((20 + strlen(tempString)*4*6), 80, 'C', ST7735_Color565(0, 0, 0), ST7735_Color565(0, 0, 0), 1);
+						ST7735_DrawCharS((20 + strlen(tempString)*4*6), 80, tempCharacter, ST7735_Color565(0, 0, 0), ST7735_Color565(0, 0, 0), 1);
 
 						sprintf(tempString, "%02d.%.1d", temperatureOUT[0]/10, temperatureOUT[0]%10);
 						ST7735_DrawStringHorizontal(20, 80, tempString, ST7735_Color565(255, 0, 0), 4);
-						ST7735_DrawCharS((20 + strlen(tempString)*4*6), 80, 'C', ST7735_Color565(255, 0, 0), ST7735_Color565(255, 0, 0), 1);
+						ST7735_DrawCharS((20 + strlen(tempString)*4*6), 80, tempCharacter, ST7735_Color565(255, 0, 0), ST7735_Color565(255, 0, 0), 1);
 						temperatureOUT[1] = temperatureOUT[0];
 					}
 
@@ -170,11 +179,11 @@ int main (void)
 					{
 						sprintf(tempString, "%02d.%.1d", temperatureIN[1]/10, temperatureIN[1]%10);
 						ST7735_DrawStringHorizontal(70, 130, tempString, ST7735_Color565(0, 0, 0), 2);
-						ST7735_DrawCharS((70 + strlen(tempString)*2*6), 130, 'C', ST7735_Color565(0, 0, 0), ST7735_Color565(0, 0, 0), 1);
+						ST7735_DrawCharS((70 + strlen(tempString)*2*6), 130, tempCharacter, ST7735_Color565(0, 0, 0), ST7735_Color565(0, 0, 0), 1);
 
 						sprintf(tempString, "%02d.%.1d", temperatureIN[0]/10, temperatureIN[0]%10);
 						ST7735_DrawStringHorizontal(70, 130, tempString, ST7735_Color565(255, 0, 0), 2);
-						ST7735_DrawCharS((70 + strlen(tempString)*2*6), 130, 'C', ST7735_Color565(255, 0, 0), ST7735_Color565(255, 0, 0), 1);
+						ST7735_DrawCharS((70 + strlen(tempString)*2*6), 130, tempCharacter, ST7735_Color565(255, 0, 0), ST7735_Color565(255, 0, 0), 1);
 						temperatureIN[1] = temperatureIN[0];
 					}
 
@@ -219,11 +228,11 @@ int main (void)
 					{
 						sprintf(tempString, "%02d.%.1d", temperatureIN[1]/10, temperatureIN[1]%10);
 						ST7735_DrawStringHorizontal(12, 30, tempString, ST7735_Color565(0, 0, 0), 2);
-						ST7735_DrawCharS((12 + strlen(tempString)*2*6), 25, 'C', ST7735_Color565(0, 0, 0), ST7735_Color565(0, 0, 0), 1);
+						ST7735_DrawCharS((12 + strlen(tempString)*2*6), 25, tempCharacter, ST7735_Color565(0, 0, 0), ST7735_Color565(0, 0, 0), 1);
 
 						sprintf(tempString, "%02d.%.1d", temperatureIN[0]/10, temperatureIN[0]%10);
 						ST7735_DrawStringHorizontal(12, 30, tempString, ST7735_Color565(255, 0, 0), 2);
-						ST7735_DrawCharS((12 + strlen(tempString)*2*6), 25, 'C', ST7735_Color565(255, 0, 0), ST7735_Color565(255, 0, 0), 1);
+						ST7735_DrawCharS((12 + strlen(tempString)*2*6), 25, tempCharacter, ST7735_Color565(255, 0, 0), ST7735_Color565(255, 0, 0), 1);
 						temperatureIN[1] = temperatureIN[0];
 					}
 
@@ -246,11 +255,11 @@ int main (void)
 					{
 						sprintf(tempString, "%02d.%.1d", temperatureOUT[1]/10, temperatureOUT[1]%10);
 						ST7735_DrawStringHorizontal(0, 70, tempString, ST7735_Color565(0, 0, 0), 2);
-						ST7735_DrawCharS((0 + strlen(tempString)*2*6), 68, 'C', ST7735_Color565(0, 0, 0), ST7735_Color565(0, 0, 0), 1);
+						ST7735_DrawCharS((0 + strlen(tempString)*2*6), 68, tempCharacter, ST7735_Color565(0, 0, 0), ST7735_Color565(0, 0, 0), 1);
 
 						sprintf(tempString, "%02d.%.1d", temperatureOUT[0]/10, temperatureOUT[0]%10);
 						ST7735_DrawStringHorizontal(0, 70, tempString, ST7735_Color565(255, 0, 0), 2);
-						ST7735_DrawCharS((0 + strlen(tempString)*2*6), 68, 'C', ST7735_Color565(255, 0, 0), ST7735_Color565(255, 0, 0), 1);
+						ST7735_DrawCharS((0 + strlen(tempString)*2*6), 68, tempCharacter, ST7735_Color565(255, 0, 0), ST7735_Color565(255, 0, 0), 1);
 						temperatureOUT[1] = temperatureOUT[0];
 					}
 
@@ -331,7 +340,7 @@ int main (void)
 
 				Top = YES;
 			}
-			else if (encoderValue == PRESS)
+			else if (encoderValue == RIGHT || encoderValue == LEFT)
 			{
 				if(screen == 1)
 				{
@@ -344,6 +353,19 @@ int main (void)
 					screen = 1;
 					ST7735_FillScreen(0);
 					refreshValues = YES;
+				}
+			}
+			else if(encoderValue == PRESS)
+			{
+				if(tempFormat == FAR)
+				{
+					tempFormat = FAR;
+					tempCharacter = 'F';
+				}
+				else
+				{
+					tempFormat = CEL;
+					tempCharacter = 'C';
 				}
 			}
 		}

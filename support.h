@@ -10,6 +10,9 @@
 #define	PRESS	3
 #define	HOLD	4
 
+#define CEL		0
+#define FAR		1
+
 #define TIMER_PERIOD    12000u //  = 1ms @ 12 MHz
 
 /* Timer_A UpMode Configuration Parameter */

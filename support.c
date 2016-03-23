@@ -2,11 +2,13 @@
 #include "ST7735.h"
 #include "ClockSystem.h"
 #include "support.h"
+#include "string.h"
 
 uint16_t Light[6];
 //-----------------------------------------------------------------------
 void InitFunction(void)
 {
+	//Set initial values for the RTC
 	RTC_C_Calendar currentTime;
 	currentTime.dayOfmonth = 0x20;
 	currentTime.hours = 0x18;
@@ -14,8 +16,6 @@ void InitFunction(void)
 	currentTime.month = 0x00;
 	currentTime.seconds = 0x00;
 	currentTime.year = 0x2016;
-
-	//	Halting the Watchdog
 
 	//	Configuring SysTick to trigger at 3000 (MCLK is 3MHz so this will make it toggle every 0.02s)
 	MAP_SysTick_enableModule();
@@ -42,11 +42,6 @@ void InitFunction(void)
 	/* Initializing RTC with current time as described in time in
 	 * definitions section */
 	MAP_RTC_C_initCalendar(&currentTime, RTC_C_FORMAT_BCD);
-
-	/* Setup Calendar Alarm for 10:04pm (for the flux capacitor) */
-//	MAP_RTC_C_setCalendarAlarm(0x04, 0x22, RTC_C_ALARMCONDITION_OFF, RTC_C_ALARMCONDITION_OFF);
-
-//	newTime = MAP_RTC_C_getCalendarTime();
 
 	/* Specify an interrupt to assert every minute */
 	MAP_RTC_C_setCalendarEvent(RTC_C_CALENDAREVENT_MINUTECHANGE);
@@ -81,6 +76,7 @@ void SSR_Init(void)
 //-----------------------------------------------------------------------
 int binaryToDecimal(int bin1, int bin2)
 {
+	//Convert a 2 bit binary number into an integer
 	if(bin1 == 0 && bin2 == 0)
 		return 0;
 	if(bin1 == 0 && bin2 == 1)
@@ -114,7 +110,6 @@ uint8_t Debouncer(uint_fast8_t portPtr, uint_fast8_t pinPtr)
 //-----------------------------------------------------------------------
 int EncoderDecipher(uint8_t encoder1[], uint8_t encoder2[], uint8_t pushbutton[])
 {
-	int sum[3];
 	static int y = 0, movement = NONE, test = 1;
 
 	if((!encoder1[0] && !encoder2[0] && encoder1[1] && encoder2[1])
@@ -166,6 +161,7 @@ void calculateLighting(uint16_t value, char stringOUT[30], int8_t *index)
 {
 	memset(stringOUT, 0, sizeof(stringOUT));
 
+	//Different lighting conditions
 	Light[0] = 8000.0;
 	Light[1] = 7000.0;
 	Light[2] = 6400.0;

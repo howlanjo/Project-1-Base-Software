@@ -44,6 +44,8 @@ support.obj: C:/Users/ChaseHowland\ Pro/ti/Project\ 1\ Base\ Software/driverlib/
 support.obj: ../ST7735.h
 support.obj: ../ClockSystem.h
 support.obj: ../support.h
+support.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.0.LTS/include/string.h
+support.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.0.LTS/include/linkage.h
 
 ../support.c: 
 C:/Users/ChaseHowland\ Pro/ti/Project\ 1\ Base\ Software/driverlib/MSP432P4xx/driverlib.h: 
@@ -89,3 +91,5 @@ C:/Users/ChaseHowland\ Pro/ti/Project\ 1\ Base\ Software/driverlib/MSP432P4xx/wd
 ../ST7735.h: 
 ../ClockSystem.h: 
 ../support.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.0.LTS/include/string.h: 
+C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.0.LTS/include/linkage.h: 

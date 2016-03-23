@@ -25,7 +25,7 @@ uint8_t Encoder1[2], Encoder2[2], PushButton[2], movement = 0, i, flag;
 int16_t dateStringColor[20], timeStringColor[20];
 int16_t lightingStringColor[20];
 static int16_t temperatureOUT[2], temperatureIN[2], lux[2], humidityOUT[2], humidityIN[2], lux[2];
-static uint16_t pressure[2];
+static unsigned int pressure[2];
 char dateString[20], timeString[20], lightIndexString[2][20];
 char months[12][5], temp[50], tempString[50], tempCharacter;
 static volatile RTC_C_Calendar newTime, setTime;
@@ -53,8 +53,10 @@ const Timer_A_UpModeConfig upConfig =
 int main (void)
 {
 	int encoderValue = 0, count = 0;
-	int16_t temp0, temp1, temp2, temp3;
+	int16_t temp0, temp2, temp3;
+	unsigned int temp1;
 	int refreshValues = YES, i, t = 0, h = 0;
+	double temptemp1, temptemp2;
 	screen = 2;
 	tempFormat = CEL;
 	tempCharacter = 'C';
@@ -119,12 +121,19 @@ int main (void)
 	        	humidityOUT[0] = temp2;
 	        	lux[0] = temp3;
 	        	calculateLighting(lux[0], lightIndexString[0], &lightIndex[0]);
+
+				if(tempFormat == FAR)
+				{
+					temptemp2 =  ((float)temperatureOUT[0]);
+					temperatureOUT[0] = (int)((temptemp2 * 1.8));
+					temperatureOUT[0] += 320;
+				}
 	        }
 
 			if(tick)
 			{
-			    if(i++ > 5)
-			    {
+//			    if(i++ > 5)
+//			    {
 			    	i = 0;
 			    	MAP_SysTick_disableModule();
 					__delay_cycles(100);
@@ -133,15 +142,17 @@ int main (void)
 					h = dht_get_rh();
 					MAP_SysTick_enableModule();
 					__delay_cycles(100);
-			    }
 
-				humidityIN[0] = h;
-				temperatureIN[0] = t;
+					humidityIN[0] = h;
+					temperatureIN[0] = t;
+//			    }
+
 
 				if(tempFormat == FAR)
 				{
-					temperatureIN[0] = (temperatureIN[0] * 1.8) + 32;
-					temperatureOUT[0] = (temperatureOUT[0] * 1.8) + 32;
+					temptemp1 =  ((float)temperatureIN[0]);
+					temperatureIN[0] = (int)((temptemp1 * 1.8));
+					temperatureIN[0] += 320;
 				}
 
 				tick = 0;
@@ -150,6 +161,11 @@ int main (void)
 //					ST7735_FillScreen(0);
 					sprintf(dateString, "%s %02X, %X", months[newTime.month], newTime.dayOfmonth, newTime.year);
 					sprintf(timeString, "%02X:%02X:%02X", newTime.hours, newTime.minutes, newTime.seconds);
+
+					if(refreshValues == YES)
+					{
+						ST7735_DrawStringHorizontal(50, 140, "IN:", ST7735_Color565(255, 255, 255), 1);
+					}
 
 					//Printing the time
 					for(i = 0; i < strlen(timeString); i++)
@@ -289,13 +305,13 @@ int main (void)
 
 					if((pressure[0] != pressure[1]) || refreshValues == YES)
 					{
-						sprintf(tempString, "%02d.%.1d", pressure[1]/10, pressure[1]%10);
+						sprintf(tempString, "%d", pressure[1]);
 						ST7735_DrawStringHorizontal(0, 135, tempString, ST7735_Color565(0, 0, 0), 2);
-						ST7735_DrawStringHorizontal((0 + strlen(tempString)*2*6), 135, "mBar", ST7735_Color565(0, 0, 0), 1);
+						ST7735_DrawStringHorizontal((0 + strlen(tempString)*2*6), 135, "Pa", ST7735_Color565(0, 0, 0), 1);
 
-						sprintf(tempString, "%02d.%.1d", pressure[0]/10, pressure[0]%10);
+						sprintf(tempString, "%d", pressure[0]);
 						ST7735_DrawStringHorizontal(0, 135, tempString, ST7735_Color565(255, 0, 0), 2);
-						ST7735_DrawStringHorizontal((0 + strlen(tempString)*2*6), 135, "mBar", ST7735_Color565(255, 0, 0), 1);
+						ST7735_DrawStringHorizontal((0 + strlen(tempString)*2*6), 135, "Pa", ST7735_Color565(255, 0, 0), 1);
 						pressure[1] = pressure[0];
 					}
 
@@ -357,7 +373,7 @@ int main (void)
 			}
 			else if(encoderValue == PRESS)
 			{
-				if(tempFormat == FAR)
+				if(tempFormat == CEL)
 				{
 					tempFormat = FAR;
 					tempCharacter = 'F';

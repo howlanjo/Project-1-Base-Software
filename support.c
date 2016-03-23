@@ -166,41 +166,41 @@ void calculateLighting(uint16_t value, char stringOUT[30], int8_t *index)
 {
 	memset(stringOUT, 0, sizeof(stringOUT));
 
-	Light[0] = 100.0;
-	Light[1] = 800.0;
-	Light[2] = 10000.0;
-	Light[3] = 16000.0;
-	Light[4] = 24000.0;
-	Light[5] = 36000.0;
+	Light[0] = 8000.0;
+	Light[1] = 7000.0;
+	Light[2] = 6400.0;
+	Light[3] = 5800.0;
+	Light[4] = 5200.0;
+	Light[5] = 4000.0;
 
-	if(value < Light[0])
+	if(value > Light[0])
 	{
-		sprintf(stringOUT, "Very Dark");
+		sprintf(stringOUT, "Dark");
 		*index = 0;
 	}
-	else if (value > Light[0] && value < Light[1])
+	else if (value < Light[0] && value > Light[1])
 	{
-		sprintf(stringOUT, "Full Moon");
+		sprintf(stringOUT, "Moon");
 		*index = 1;
 	}
-	else if (value > Light[1] && value < Light[2])
+	else if (value < Light[1] && value > Light[2])
 	{
 		sprintf(stringOUT, "Dusk");
 		*index = 2;
 	}
-	else if (value > Light[2] && value < Light[3])
+	else if (value < Light[2] && value > Light[3])
 	{
-		sprintf(stringOUT, "Overcast");
+		sprintf(stringOUT, "Cloud");
 		*index = 3;
 	}
-	else if (value > Light[3] && value < Light[4])
+	else if (value < Light[3] && value > Light[4])
 	{
-		sprintf(stringOUT, "Lil' Sun");
+		sprintf(stringOUT, "Sun");
 		*index = 4;
 	}
-	else if (value > Light[4] && value < Light[5])
+	else if (value < Light[4] && value > Light[5])
 	{
-		sprintf(stringOUT, "SUNNY");
+		sprintf(stringOUT, "Bright");
 		*index = 5;
 	}
 	else
